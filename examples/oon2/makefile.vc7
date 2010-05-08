@@ -1,0 +1,9 @@
+COMPILER = cl
+CFLAGS = /EHsc
+SRCPATH = source
+
+all:
+	$(COMPILER) $(CFLAGS) oon2.cpp ../../lib/*.obj
+
+Clean:
+	del oon2.exe *.obj

@@ -1,0 +1,15 @@
+COMPILER = dmc
+PELIBDIR=../..
+CFLAGS = -Ae -c -o+space -w- -I$(PELIBDIR)/source
+
+all: ProxyLib.obj smine
+
+Clean:
+	del ProxyLib.obj
+	del skinmine.exe
+	
+ProxyLib.obj:
+	$(COMPILER) $(CFLAGS) -c ProxyLib.cpp
+
+smine:
+	$(COMPILER) $(CFLAGS) skinmine.cpp ProxyLib.obj $(PELIBDIR)\lib\*.obj

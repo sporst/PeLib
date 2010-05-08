@@ -1,0 +1,58 @@
+COMPILER = g++
+CFLAGS = -shared -Wall -W -Os -c
+
+all: BoundImportDirectory.o ComHeaderDirectory.o ExportDirectory.o IatDirectory.o MzHeader.o \
+     PeHeader.o PeLibAux.o RelocationsDirectory.o ResourceDirectory.o \
+     InputBuffer.o OutputBuffer.o DebugDirectory.o PeFile.o
+	ar q ../lib/PeLib.a ../lib/*.o
+
+clean:
+	rm ../lib/*.o
+	rm ../lib/*.a
+	
+BoundImportDirectory.o: BoundImportDirectory.cpp BoundImportDirectory.h
+	${COMPILER} ${CFLAGS} BoundImportDirectory.cpp -o ../lib/BoundImportDirectory.o
+	
+ComHeaderDirectory.o: ComHeaderDirectory.cpp ComHeaderDirectory.h
+	${COMPILER} ${CFLAGS} ComHeaderDirectory.cpp -o ../lib/ComHeaderDirectory.o
+	
+ExportDirectory.o: ExportDirectory.cpp ExportDirectory.h
+	${COMPILER} ${CFLAGS} ExportDirectory.cpp -o ../lib/ExportDirectory.o
+	
+IatDirectory.o: IatDirectory.cpp IatDirectory.h
+	${COMPILER} ${CFLAGS} IatDirectory.cpp -o ../lib/IatDirectory.o
+	
+ImportDirectory.o: ImportDirectory.cpp ImportDirectory.h
+	${COMPILER} ${CFLAGS} ImportDirectory.cpp -o ../lib/ImportDirectory.o
+	
+MzHeader.o: MzHeader.cpp MzHeader.h
+	${COMPILER} ${CFLAGS} MzHeader.cpp -o ../lib/MzHeader.o
+	
+PeFile.o: PeFile.cpp PeFile.h
+	${COMPILER} ${CFLAGS} PeFile.cpp -o ../lib/PeFile.o
+	
+PeHeader.o: PeHeader.cpp PeHeader.h
+	${COMPILER} ${CFLAGS} PeHeader.cpp -o ../lib/PeHeader.o
+	
+PeLibAux.o: PeLibAux.cpp PeLibAux.h
+	${COMPILER} ${CFLAGS} PeLibAux.cpp -o ../lib/PeLibAux.o
+	
+RelocationsDirectory.o: RelocationsDirectory.cpp RelocationsDirectory.h
+	${COMPILER} ${CFLAGS} RelocationsDirectory.cpp -o ../lib/RelocationsDirectory.o
+	
+DebugDirectory.o: DebugDirectory.cpp DebugDirectory.h
+	${COMPILER} ${CFLAGS} DebugDirectory.cpp -o ../lib/DebugDirectory.o
+	
+ResourceDirectory.o: ResourceDirectory.cpp ResourceDirectory.h
+	${COMPILER} ${CFLAGS} ResourceDirectory.cpp -o ../lib/ResourceDirectory.o
+	
+InputBuffer.o: buffer/InputBuffer.cpp buffer/InputBuffer.h
+	${COMPILER} ${CFLAGS} buffer/InputBuffer.cpp -o ../lib/InputBuffer.o
+	
+OutputBuffer.o: buffer/OutputBuffer.cpp buffer/OutputBuffer.h
+	${COMPILER} ${CFLAGS} buffer/OutputBuffer.cpp -o ../lib/OutputBuffer.o
+	
+TlsDirectory.o: TlsDirectory.cpp TlsDirectory.h
+	${COMPILER} ${CFLAGS} TlsDirectory.cpp -o ../lib/TlsDirectory.o
+	
+	

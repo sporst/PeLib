@@ -1,0 +1,10 @@
+COMPILER = g++
+CFLAGS = -ansi -W -Wall -O2 -c
+
+all:
+	${COMPILER} ${CFLAGS} PeLib.cpp
+	$(COMPILER) -shared PeLib.o -o PeLib.dll -def PeLib.def -Wl, --enable-stdcall-fixup ../lib/*.o
+	strip --strip-unneeded PeLib.dll
+
+Clean:
+	del *.exe

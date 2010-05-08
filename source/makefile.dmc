@@ -1,0 +1,48 @@
+COMPILER = dmc
+CFLAGS = -Ae -Ar -c -o+space -w-
+
+all: BoundImportDirectory.o ComHeaderDirectory.o ExportDirectory.o IatDirectory.o MzHeader.o \
+     PeFile.o PeHeader.o PeLibAux.o RelocationsDirectory.o \
+     InputBuffer.o OutputBuffer.o DebugDirectory.o
+
+clean:
+	rm ../lib/*.obj
+	
+BoundImportDirectory.o: BoundImportDirectory.cpp BoundImportDirectory.h
+	$(COMPILER) $(CFLAGS) BoundImportDirectory.cpp -o../lib/BoundImportDirectory.obj
+	
+ComHeaderDirectory.o: ComHeaderDirectory.cpp ComHeaderDirectory.h
+	$(COMPILER) $(CFLAGS) ComHeaderDirectory.cpp -o../lib/ComHeaderDirectory.obj
+	
+ExportDirectory.o: ExportDirectory.cpp ExportDirectory.h
+	$(COMPILER) $(CFLAGS) ExportDirectory.cpp -o../lib/ExportDirectory.obj
+	
+IatDirectory.o: IatDirectory.cpp IatDirectory.h
+	$(COMPILER) $(CFLAGS) IatDirectory.cpp -o../lib/IatDirectory.obj
+
+MzHeader.o: MzHeader.cpp MzHeader.h
+	$(COMPILER) $(CFLAGS) MzHeader.cpp -o../lib/MzHeader.obj
+	
+PeFile.o: PeFile.cpp PeFile.h
+	$(COMPILER) $(CFLAGS) PeFile.cpp -o../lib/PeFile.obj
+	
+PeHeader.o: PeHeader.cpp PeHeader.h
+	$(COMPILER) $(CFLAGS) PeHeader.cpp -o../lib/PeHeader.obj
+	
+PeLibAux.o: PeLibAux.cpp PeLibAux.h
+	$(COMPILER) $(CFLAGS) PeLibAux.cpp -o../lib/PeLibAux.obj
+	
+RelocationsDirectory.o: RelocationsDirectory.cpp RelocationsDirectory.h
+	$(COMPILER) $(CFLAGS) RelocationsDirectory.cpp -o../lib/RelocationsDirectory.obj
+	
+ResourceDirectory.o: ResourceDirectory.cpp ResourceDirectory.h
+	$(COMPILER) $(CFLAGS) ResourceDirectory.cpp -o../lib/ResourceDirectory.obj
+	
+InputBuffer.o: buffer/InputBuffer.cpp buffer/InputBuffer.h
+	$(COMPILER) $(CFLAGS) buffer/InputBuffer.cpp -o../lib/InputBuffer.obj
+	
+OutputBuffer.o: buffer/OutputBuffer.cpp buffer/OutputBuffer.h
+	$(COMPILER) $(CFLAGS) buffer/OutputBuffer.cpp -o../lib/OutputBuffer.obj
+
+DebugDirectory.o: DebugDirectory.cpp DebugDirectory.h
+	$(COMPILER) $(CFLAGS) DebugDirectory.cpp -o ../lib/DebugDirectory.obj

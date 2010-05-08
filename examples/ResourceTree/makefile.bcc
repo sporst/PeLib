@@ -1,0 +1,8 @@
+COMPILER = bcc32
+CFLAGS =
+
+all: 
+	${COMPILER} ${CFLAGS} ResourceTree.cpp ../../lib/*.obj
+
+clean:
+	rm ResourceTree.exe

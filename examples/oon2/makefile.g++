@@ -1,0 +1,9 @@
+COMPILER = g++
+CFLAGS = -Wall -W -Os
+FILENAME=oon2
+
+all:
+	${COMPILER} ${CFLAGS} $(FILENAME).cpp -o $(FILENAME).exe ../../lib/*.o
+
+clean:
+	del oon2.exe

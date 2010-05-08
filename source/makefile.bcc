@@ -1,0 +1,67 @@
+COMPILER = bcc32
+CFLAGS = -c -ID:/coding/bcc55/include
+SRCPATH = source
+
+all: BoundImportDirectory.obj ComHeaderDirectory.obj ExportDirectory.obj IatDirectory.obj MzHeader.obj \
+     PeFile.obj PeHeader.obj PeLibAux.obj RelocationsDirectory.obj DebugDirectory.obj \
+     InputBuffer.obj OutputBuffer.obj ResourceDirectory.obj
+
+clean:
+	rm ../lib/*.obj
+	
+BoundImportDirectory.obj:
+	${COMPILER} ${CFLAGS} BoundImportDirectory.cpp -o BoundImportDirectory.obj
+     move BoundImportDirectory.obj ../lib
+	
+ComHeaderDirectory.obj:
+	${COMPILER} ${CFLAGS} ComHeaderDirectory.cpp -o ComHeaderDirectory.obj
+     move ComHeaderDirectory.obj ../lib
+	
+ExportDirectory.obj:
+	${COMPILER} ${CFLAGS} ExportDirectory.cpp -o ExportDirectory.obj
+     move ExportDirectory.obj ../lib
+	
+IatDirectory.obj:
+	${COMPILER} ${CFLAGS} IatDirectory.cpp -o IatDirectory.obj
+     move IatDirectory.obj ../lib
+	
+MzHeader.obj:
+	${COMPILER} ${CFLAGS} MzHeader.cpp -o MzHeader.obj
+     move MzHeader.obj ../lib
+	
+PeFile.obj:
+	${COMPILER} ${CFLAGS} PeFile.cpp -o PeFile.obj
+     move PeFile.obj ../lib
+	
+DebugDirectory.obj:
+	${COMPILER} ${CFLAGS} DebugDirectory.cpp -o DebugDirectory.obj
+     move DebugDirectory.obj ../lib
+	
+PeHeader.obj:
+	${COMPILER} ${CFLAGS} PeHeader.cpp -o PeHeader.obj
+     move PeHeader.obj ../lib
+	
+PeLibAux.obj:
+	${COMPILER} ${CFLAGS} PeLibAux.cpp -o PeLibAux.obj
+     move PeLibAux.obj ../lib
+	
+RelocationsDirectory.obj:
+	${COMPILER} ${CFLAGS} RelocationsDirectory.cpp -o RelocationsDirectory.obj
+     move RelocationsDirectory.obj ../lib
+	
+ResourceDirectory.obj:
+	${COMPILER} ${CFLAGS} ResourceDirectory.cpp -o ResourceDirectory.obj
+     move ResourceDirectory.obj ../lib
+	
+InputBuffer.obj:
+	${COMPILER} ${CFLAGS} buffer/InputBuffer.cpp -o InputBuffer.obj
+     move InputBuffer.obj ../lib
+	
+OutputBuffer.obj:
+	${COMPILER} ${CFLAGS} buffer/OutputBuffer.cpp -o OutputBuffer.obj
+     move OutputBuffer.obj ../lib
+
+TlsDirectory.obj:
+	$(COMPILER) $(CFLAGS) TlsDirectory.cpp /Fo../lib/TlsDirectory.obj
+     move TlsDirectory.obj ../lib
+

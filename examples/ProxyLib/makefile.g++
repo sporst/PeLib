@@ -1,0 +1,15 @@
+COMPILER = g++
+PELIBDIR=../..
+CFLAGS = -Wall -ansi -W -Os -I${PELIBDIR}/source
+
+all: ProxyLib.o smine
+
+clean:
+	del ProxyLib.o
+	del skinmine.exe
+	
+ProxyLib.o:
+	${COMPILER} ${CFLAGS} -c -Os ProxyLib.cpp
+
+smine:
+	${COMPILER} ${CFLAGS} -Os -s skinmine.cpp ProxyLib.o -o skinmine.exe ${PELIBDIR}/lib/*.o

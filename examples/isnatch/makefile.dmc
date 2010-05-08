@@ -1,0 +1,8 @@
+COMPILER = dmc
+CFLAGS = -Ae -o+space -w-
+
+all: 
+	$(COMPILER) $(CFLAGS) isnatch.cpp ..\..\lib\*.obj
+
+clean:
+	rm isnatch.exe

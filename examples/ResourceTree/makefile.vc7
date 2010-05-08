@@ -1,0 +1,10 @@
+COMPILER = cl
+CFLAGS = /EHsc
+SRCPATH = source
+NAME = ResourceTree
+
+all:
+	$(COMPILER) $(CFLAGS) $(NAME).cpp ../../lib/*.obj
+
+Clean:
+	del $(NAME).exe *.obj

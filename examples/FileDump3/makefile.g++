@@ -1,0 +1,8 @@
+COMPILER = g++
+CFLAGS = -I../../source ../../lib/*.o
+
+all:
+	${COMPILER} ${CFLAGS} FileDump.cpp -o FileDump.exe
+
+clean:
+	del Filedump.exe

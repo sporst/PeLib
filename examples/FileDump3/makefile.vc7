@@ -1,0 +1,9 @@
+COMPILER = cl
+CFLAGS = /EHsc
+SRCPATH = source
+
+all:
+	$(COMPILER) $(CFLAGS) FileDump.cpp ../../lib/*.obj
+
+Clean:
+	del Filedump.exe *.obj

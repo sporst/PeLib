@@ -1,0 +1,15 @@
+COMPILER = bcc32
+PELIBDIR=../..
+CFLAGS = -I${PELIBDIR}/source
+
+all: ProxyLib.obj smine
+
+Clean:
+	del ProxyLib.obj
+	del skinmine.exe
+	
+ProxyLib.obj:
+	${COMPILER} ${CFLAGS} -c -Os ProxyLib.cpp
+
+smine:
+	${COMPILER} ${CFLAGS} skinmine.cpp ProxyLib.obj ${PELIBDIR}/lib/*.obj

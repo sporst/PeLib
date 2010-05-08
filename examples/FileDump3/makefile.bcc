@@ -1,0 +1,8 @@
+COMPILER = bcc32
+CFLAGS =
+
+all: 
+	${COMPILER} ${CFLAGS} FileDump.cpp ../../lib/*.obj
+
+clean:
+	rm FileDump.exe
