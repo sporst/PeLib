@@ -169,7 +169,8 @@ namespace PeLib
 		PELIB_IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT,	// OK
 		PELIB_IMAGE_DIRECTORY_ENTRY_IAT,		// OK
 		PELIB_IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT,
-		PELIB_IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR
+		PELIB_IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR,
+		PELIB_IMAGE_DIRECTORY_ENTRY_RESERVED
 	};
 
 	enum
@@ -233,6 +234,7 @@ namespace PeLib
 		PELIB_IMAGE_FILE_MACHINE_MIPSFPU	   = 0x0366,
 		PELIB_IMAGE_FILE_MACHINE_MIPSFPU16	 = 0x0466,
 		PELIB_IMAGE_FILE_MACHINE_ALPHA64	   = 0x0284,
+		PELIB_IMAGE_FILE_MACHINE_AMD64		   = 0x8664,
 		PELIB_IMAGE_FILE_MACHINE_AXP64	     = PELIB_IMAGE_FILE_MACHINE_ALPHA64
 	};
 
@@ -849,6 +851,55 @@ namespace PeLib
 	{
 //		enum {size = 40};
 	    static unsigned int size(){return 40;}
+	};
+
+	struct PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR {
+		dword   grAttrs;
+		dword   szName;
+		dword   phmod;
+		dword   pIAT;
+		dword   pINT;
+		dword   pBoundIAT;
+		dword   pUnloadIAT;
+		dword   dwTimeStamp;
+
+		PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR()
+		{
+			grAttrs = 0;
+			szName = 0;
+			phmod = 0;
+			pIAT = 0;
+			pINT = 0;
+			pBoundIAT = 0;
+			pUnloadIAT = 0;
+			dwTimeStamp = 0;
+		}
+
+		static inline unsigned int size() {return 32;}
+	};
+
+	template<int bits>
+	struct PELIB_IMAGE_DELAY_IMPORT_DIRECTORY {
+		typedef typename FieldSizes<bits>::VAR4_8 VAR4_8;
+
+		PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR deldesc;
+		std::string name;
+		std::vector<VAR4_8> impat;
+		std::vector<PELIB_THUNK_DATA<bits> > impnt;
+		std::vector<VAR4_8> boundiat;
+		std::vector<VAR4_8> unloadiat;
+
+		inline unsigned int size() const
+		{
+			return PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR::size() + name.size() + 1 +
+				std::accumulate(impnt.begin(), impnt.end(), 0, accumulate<PELIB_THUNK_DATA<bits> >) +
+				static_cast<unsigned int>(impat.size() + boundiat.size() + unloadiat.size()) * sizeof(dword);
+		}
+
+		bool operator==(std::string strFilename) const
+		{
+			return isEqualNc(this->name, strFilename);
+		}
 	};
 
 	unsigned int fileSize(const std::string& filename);
