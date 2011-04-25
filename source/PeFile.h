@@ -25,6 +25,7 @@
 #include "IatDirectory.h"
 #include "DebugDirectory.h"
 #include "TlsDirectory.h"
+#include "DelayImportDirectory.h"
 
 namespace PeLib
 {
@@ -106,6 +107,8 @@ namespace PeLib
 		  /// Reads the Debug directory of the current file.		  
 		  virtual int readDebugDirectory()  = 0; // EXPORT
 		  virtual int readTlsDirectory()  = 0; // EXPORT
+		  /// Reads the delay import directory of the current file from disc.
+		  virtual int readDelayImportDirectory() = 0;
 		  
 		  virtual unsigned int getBits() const = 0;
 
@@ -163,6 +166,7 @@ namespace PeLib
 		  PeHeader32_64 m_peh; ///< PE header of the current file.
 		  ImportDirectory<bits> m_impdir; ///< Import directory of the current file.
 		  TlsDirectory<bits> m_tlsdir;
+		  DelayImportDirectory<bits> m_delimpdir; ///< Delay import directory of the current file.
 		
 		public:
 		  /// Default constructor which exists only for the sake of allowing to construct files without filenames.
@@ -199,6 +203,8 @@ namespace PeLib
 		  /// Reads the Debug directory of the current file.		  
 		  int readDebugDirectory() ;
 		  int readTlsDirectory() ;
+		  /// Reads the delay import directory of the current file from disc.
+		  int readDelayImportDirectory() ;
 		  
 		  unsigned int getBits() const
 		  {
@@ -217,6 +223,11 @@ namespace PeLib
 		  
 		  const TlsDirectory<bits>& tlsDir() const;
 		  TlsDirectory<bits>& tlsDir();
+
+		  /// Accessor function for the delay import directory.
+		  const DelayImportDirectory<bits>& delayDir() const;
+		  /// Accessor function for the delay import directory.
+		  DelayImportDirectory<bits>& delayDir();
 	};
 
 	/**
@@ -332,6 +343,24 @@ namespace PeLib
 	}
 
 	/**
+	* @return A reference to the file's delay import directory.
+	**/
+	template<int bits>
+	const DelayImportDirectory<bits>& PeFileT<bits>::delayDir() const
+	{
+		return m_delimpdir;
+	}
+
+	/**
+	* @return A reference to the file's delay import directory.
+	**/
+	template<int bits>
+	DelayImportDirectory<bits>& PeFileT<bits>::delayDir()
+	{
+		return m_delimpdir;
+	}
+
+	/**
 	* @return Filename of the current file.
 	**/
 	template<int bits>
@@ -442,6 +471,17 @@ namespace PeLib
 			&& peHeader().getIddTlsRva() && peHeader().getIddTlsSize())
 		{
 			return tlsDir().read(getFileName(), static_cast<unsigned int>(peHeader().rvaToOffset(peHeader().getIddTlsRva())), peHeader().getIddTlsSize());
+		}
+		return ERROR_DIRECTORY_DOES_NOT_EXIST;
+	}
+
+	template<int bits>
+	int PeFileT<bits>::readDelayImportDirectory() 
+	{
+		if (peHeader().calcNumberOfRvaAndSizes() >= 14
+			&& peHeader().getIddDelayImportRva() && peHeader().getIddDelayImportSize())
+		{
+			return delayDir().read(getFileName(), static_cast<unsigned int>(peHeader().rvaToOffset(peHeader().getIddDelayImportRva())), peHeader().getIddDelayImportSize(), peHeader());
 		}
 		return ERROR_DIRECTORY_DOES_NOT_EXIST;
 	}

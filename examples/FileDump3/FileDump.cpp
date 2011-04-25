@@ -485,6 +485,78 @@ void dumpComHeaderDirectory(PeLib::PeFile* pef)
 	dump("");
 }
 
+template<int bits>
+void dumpDelayImportDirectory(PeLib::PeFile& pef)
+{
+	dump(centerOutput("Delay Import Directory"));
+
+	if (pef.readDelayImportDirectory())
+	{
+		dump(centerOutput("Not available"));
+		dump("");
+		dump(centerOutput("----------------------------------------------"));
+		dump("");
+		return;	
+	}
+
+	const PeLib::DelayImportDirectory<bits>& imp = static_cast<PeLib::PeFileT<bits>&>(pef).delayDir();
+
+	for (unsigned int i=0;i<imp.getNumberOfFiles();i++)
+	{
+		dump(formatOutput("DLL Name", imp.getFileName(i)));
+		dump(formatOutput("grAttrs", toString(imp.getAttributes(i)), "    "));
+		dump(formatOutput("szName", toString(imp.getAddressOfName(i)), "    "));
+		dump(formatOutput("phmode", toString(imp.getModuleHandle(i)), "    "));
+		dump(formatOutput("pIAT", toString(imp.getIat(i)), "    "));
+		dump(formatOutput("pINT", toString(imp.getInt(i)), "    "));
+		dump(formatOutput("pBoundIAT", toString(imp.getBoundIat(i)), "    "));
+		dump(formatOutput("pUnloadIAT", toString(imp.getUnloadIat(i)), "    "));
+		dump(formatOutput("dwTimeStamp", toString(imp.getTimeDateStamp(i)), "    "));
+		dump("");
+		
+		if (imp.getNumberOfIat(i))
+		{
+			dump(formatOutput("IAT", "", "    "));
+			for (unsigned int j=0;j<imp.getNumberOfIat(i);j++)
+			{
+				dump(formatOutput("Address", toString(imp.getIatItem(i, j)), "        "));
+			}
+			dump("");
+		}
+
+		if (imp.getNumberOfInt(i))
+		{
+			dump(formatOutput("INT", "", "    "));
+			for (unsigned int j=0;j<imp.getNumberOfInt(i);j++)
+			{
+				dump(formatOutput("Function Name", imp.getFunctionName(i, j), "        "));
+				dump(formatOutput("Hint", toString(imp.getFunctionHint(i, j)), "        "));
+				dump("");
+			}
+		}
+
+		if (imp.getNumberOfBoundIat(i))
+		{
+			dump(formatOutput("BoundIAT", "", "    "));
+			for (unsigned int j=0;j<imp.getNumberOfBoundIat(i);j++)
+			{
+				dump(formatOutput("Address", toString(imp.getBoundIatItem(i, j)), "        "));
+			}
+			dump("");
+		}
+
+		if (imp.getNumberOfUnloadIat(i))
+		{
+			dump(formatOutput("UnloadIAT", "", "    "));
+			for (unsigned int j=0;j<imp.getNumberOfUnloadIat(i);j++)
+			{
+				dump(formatOutput("Address", toString(imp.getUnloadIatItem(i, j)), "        "));
+			}
+			dump("");
+		}
+	}
+}
+
 class DumpPeHeaderVisitor : public PeLib::PeFileVisitor
 {
 public:
@@ -504,6 +576,13 @@ class DumpTlsDirVisitor : public PeLib::PeFileVisitor
 public:
     virtual void callback(PeLib::PeFile32 &file) {dumpTlsDirectory<32>(file);}
     virtual void callback(PeLib::PeFile64 &file) {dumpTlsDirectory<64>(file);}
+};
+
+class DumpDelayDirVisitor : public PeLib::PeFileVisitor
+{
+public:
+    virtual void callback(PeLib::PeFile32 &file) {dumpDelayImportDirectory<32>(file);}
+    virtual void callback(PeLib::PeFile64 &file) {dumpDelayImportDirectory<64>(file);}
 };
 
 int main(int argc, char* argv[])
@@ -548,6 +627,9 @@ int main(int argc, char* argv[])
 	dumpIatDirectory(pef);
 	dumpComHeaderDirectory(pef);
 	
+	DumpDelayDirVisitor v4;
+	pef->visit(v4);
+
 	delete pef;
 	
 	return 0;

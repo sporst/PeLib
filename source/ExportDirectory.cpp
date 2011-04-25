@@ -67,7 +67,7 @@ namespace PeLib
 	* @param uiOffset File offset of the export directory.
 	* @param uiSize Size of the export directory.
 	* @param pehHeader A valid PE header which is necessary because some RVA calculations need to be done.
-    * \todo: Proper use of InputBuffer
+	* \todo: Proper use of InputBuffer
 	**/
 	int ExportDirectory::read(const std::string& strFilename, unsigned int uiOffset, unsigned int uiSize, const PeHeader& pehHeader)
 	{

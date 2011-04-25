@@ -16,6 +16,24 @@
 namespace PeLib
 {
 	template<>
+	void PeHeaderT<32>::makeValidSpecific()
+	{
+		setMachine(PELIB_IMAGE_FILE_MACHINE_I386);
+		dword dwCharacteristics = PELIB_IMAGE_FILE_EXECUTABLE_IMAGE | PELIB_IMAGE_FILE_32BIT_MACHINE;
+		setCharacteristics(dwCharacteristics);
+		setMagic(PELIB_IMAGE_NT_OPTIONAL_HDR32_MAGIC);
+	}
+
+	template<>
+	void PeHeaderT<64>::makeValidSpecific()
+	{
+		setMachine(PELIB_IMAGE_FILE_MACHINE_AMD64);
+		dword dwCharacteristics = PELIB_IMAGE_FILE_EXECUTABLE_IMAGE | PELIB_IMAGE_FILE_LARGE_ADDRESS_AWARE;
+		setCharacteristics(dwCharacteristics);
+		setMagic(PELIB_IMAGE_NT_OPTIONAL_HDR64_MAGIC);
+	}
+
+	template<>
 	void PeHeaderT<32>::readBaseOfData(InputBuffer& ibBuffer, PELIB_IMAGE_NT_HEADERS<32>& header) const
 	{
 		ibBuffer >> header.OptionalHeader.BaseOfData;

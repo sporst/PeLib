@@ -169,7 +169,8 @@ namespace PeLib
 		PELIB_IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT,	// OK
 		PELIB_IMAGE_DIRECTORY_ENTRY_IAT,		// OK
 		PELIB_IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT,
-		PELIB_IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR
+		PELIB_IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR,
+		PELIB_IMAGE_DIRECTORY_ENTRY_RESERVED
 	};
 
 	enum
@@ -215,25 +216,26 @@ namespace PeLib
 
 	enum
 	{
-		PELIB_IMAGE_FILE_MACHINE_UNKNOWN	   = 0,
-		PELIB_IMAGE_FILE_MACHINE_I386	      = 0x014c,
-		PELIB_IMAGE_FILE_MACHINE_R3000	     = 0x0162,
-		PELIB_IMAGE_FILE_MACHINE_R4000	     = 0x0166,
-		PELIB_IMAGE_FILE_MACHINE_R10000	    = 0x0168,
-		PELIB_IMAGE_FILE_MACHINE_WCEMIPSV2	 = 0x0169,
-		PELIB_IMAGE_FILE_MACHINE_ALPHA	     = 0x0184,
-		PELIB_IMAGE_FILE_MACHINE_POWERPC	   = 0x01F0,
-		PELIB_IMAGE_FILE_MACHINE_SH3	       = 0x01a2,
-		PELIB_IMAGE_FILE_MACHINE_SH3E	      = 0x01a4,
-		PELIB_IMAGE_FILE_MACHINE_SH4	       = 0x01a6,
-		PELIB_IMAGE_FILE_MACHINE_ARM	       = 0x01c0,
-		PELIB_IMAGE_FILE_MACHINE_THUMB	     = 0x01c2,
-		PELIB_IMAGE_FILE_MACHINE_IA64	      = 0x0200,
-		PELIB_IMAGE_FILE_MACHINE_MIPS16	    = 0x0266,
-		PELIB_IMAGE_FILE_MACHINE_MIPSFPU	   = 0x0366,
-		PELIB_IMAGE_FILE_MACHINE_MIPSFPU16	 = 0x0466,
-		PELIB_IMAGE_FILE_MACHINE_ALPHA64	   = 0x0284,
-		PELIB_IMAGE_FILE_MACHINE_AXP64	     = PELIB_IMAGE_FILE_MACHINE_ALPHA64
+		PELIB_IMAGE_FILE_MACHINE_UNKNOWN   = 0x0,
+		PELIB_IMAGE_FILE_MACHINE_AM33      = 0x1d3,
+		PELIB_IMAGE_FILE_MACHINE_AMD64     = 0x8664,
+		PELIB_IMAGE_FILE_MACHINE_ARM       = 0x1c0,
+		PELIB_IMAGE_FILE_MACHINE_EBC       = 0xebc,
+		PELIB_IMAGE_FILE_MACHINE_I386      = 0x14c,
+		PELIB_IMAGE_FILE_MACHINE_IA64      = 0x200,
+		PELIB_IMAGE_FILE_MACHINE_M32R      = 0x9041,
+		PELIB_IMAGE_FILE_MACHINE_MIPS16    = 0x266,
+		PELIB_IMAGE_FILE_MACHINE_MIPSFPU   = 0x366,
+		PELIB_IMAGE_FILE_MACHINE_MIPSFPU16 = 0x466,
+		PELIB_IMAGE_FILE_MACHINE_POWERPC   = 0x1f0,
+		PELIB_IMAGE_FILE_MACHINE_POWERPCFP = 0x1f1,
+		PELIB_IMAGE_FILE_MACHINE_R4000     = 0x166,
+		PELIB_IMAGE_FILE_MACHINE_SH3       = 0x1a2,
+		PELIB_IMAGE_FILE_MACHINE_SH3DSP    = 0x1a3,
+		PELIB_IMAGE_FILE_MACHINE_SH4       = 0x1a6,
+		PELIB_IMAGE_FILE_MACHINE_SH5       = 0x1a8,
+		PELIB_IMAGE_FILE_MACHINE_THUMB     = 0x1c2,
+		PELIB_IMAGE_FILE_MACHINE_WCEMIPSV2 = 0x169
 	};
 
 	enum
@@ -849,6 +851,55 @@ namespace PeLib
 	{
 //		enum {size = 40};
 	    static unsigned int size(){return 40;}
+	};
+
+	struct PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR {
+		dword   grAttrs;
+		dword   szName;
+		dword   phmod;
+		dword   pIAT;
+		dword   pINT;
+		dword   pBoundIAT;
+		dword   pUnloadIAT;
+		dword   dwTimeStamp;
+
+		PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR()
+		{
+			grAttrs = 0;
+			szName = 0;
+			phmod = 0;
+			pIAT = 0;
+			pINT = 0;
+			pBoundIAT = 0;
+			pUnloadIAT = 0;
+			dwTimeStamp = 0;
+		}
+
+		static inline unsigned int size() {return 32;}
+	};
+
+	template<int bits>
+	struct PELIB_IMAGE_DELAY_IMPORT_DIRECTORY {
+		typedef typename FieldSizes<bits>::VAR4_8 VAR4_8;
+
+		PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR deldesc;
+		std::string name;
+		std::vector<VAR4_8> impat;
+		std::vector<PELIB_THUNK_DATA<bits> > impnt;
+		std::vector<VAR4_8> boundiat;
+		std::vector<VAR4_8> unloadiat;
+
+		inline unsigned int size() const
+		{
+			return PELIB_IMAGE_DELAY_IMPORT_DESCRIPTOR::size() + name.size() + 1 +
+				std::accumulate(impnt.begin(), impnt.end(), 0, accumulate<PELIB_THUNK_DATA<bits> >) +
+				static_cast<unsigned int>(impat.size() + boundiat.size() + unloadiat.size()) * sizeof(dword);
+		}
+
+		bool operator==(std::string strFilename) const
+		{
+			return isEqualNc(this->name, strFilename);
+		}
 	};
 
 	unsigned int fileSize(const std::string& filename);
