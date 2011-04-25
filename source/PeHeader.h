@@ -32,7 +32,6 @@ namespace PeLib
 	* This class can read and modify PE headers. It provides set- and get functions to access
 	* all individual members of a PE header. Furthermore it's possible to validate and rebuild
 	* PE headers. A PE header includes the IMAGE_Nt_HEADERS and the section definitions of a PE file.
-	* \todo getIdReservedRva
 	**/
 	template<int x>
 	class PeHeaderT : public PeHeader
@@ -40,6 +39,9 @@ namespace PeLib
 		private:
 			void readBaseOfData(InputBuffer& ibBuffer, PELIB_IMAGE_NT_HEADERS<x>& header) const;
 			void rebuildBaseOfData(OutputBuffer& obBuffer) const;
+
+			/// Corrects the platform-specific fields (Machine, Magic, Characteristics) of the current PE header.
+			void makeValidSpecific(); // EXPORT
 		
 		protected:
 		  std::vector<PELIB_IMAGE_SECTION_HEADER> m_vIsh; ///< Stores section header information.
@@ -267,6 +269,10 @@ namespace PeLib
 		  dword getIddComHeaderRva() const; // EXPORT
 		  /// Returns the size of the image directory COM Descriptor.
 		  dword getIddComHeaderSize() const; // EXPORT
+		  /// Returns the relative virtual address of the image directory Reserved.
+		  dword getIddReservedRva() const; // EXPORT
+		  /// Returns the size of the image directory Reserved.
+		  dword getIddReservedSize() const; // EXPORT
 
 		  /// Returns the relative virtual address of an image directory.
 		  dword getImageDataDirectoryRva(dword dwDirectory) const; // EXPORT
@@ -406,6 +412,8 @@ namespace PeLib
 		  void setIddArchitectureSize(dword value); // EXPORT
 		  void setIddComHeaderRva(dword value); // EXPORT
 		  void setIddComHeaderSize(dword value); // EXPORT
+		  void setIddReservedRva(dword value); // EXPORT
+		  void setIddReservedSize(dword value); // EXPORT
 
 		  /// Set the name of a section.
 		  void setSectionName(word uiSectionnr, std::string strName); // EXPORT
@@ -542,7 +550,6 @@ namespace PeLib
 	* Returns the first offset of the file that's actually used for something different than the header.
 	* That something is not necessarily code, it can be a data directory too.
 	* This offset can be the beginning of a section or the beginning of a directory.
-	* \todo Some optimizization is surely possible here.
 	* \todo There are PE files with sections beginning at offset 0. They
 	* need to be considered. Returning 0 for these files doesn't really make sense.
 	* So far these sections are disregarded.
@@ -552,7 +559,36 @@ namespace PeLib
 	{
 		unsigned int directories = calcNumberOfRvaAndSizes();
 		dword dwMinOffset = 0xFFFFFFFF;
-		if (directories >= 1 && getIddExportRva() && rvaToOffset(getIddExportRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddExportRva());
+
+		dword (PeHeaderT<x>::*getIddItemRva[16])() const =
+		{
+			&PeHeaderT<x>::getIddExportRva,
+			&PeHeaderT<x>::getIddImportRva,
+			&PeHeaderT<x>::getIddResourceRva,
+			&PeHeaderT<x>::getIddExceptionRva,
+			&PeHeaderT<x>::getIddSecurityRva,
+			&PeHeaderT<x>::getIddBaseRelocRva,
+			&PeHeaderT<x>::getIddDebugRva,
+			&PeHeaderT<x>::getIddArchitectureRva,
+			&PeHeaderT<x>::getIddGlobalPtrRva,
+			&PeHeaderT<x>::getIddTlsRva,
+			&PeHeaderT<x>::getIddLoadConfigRva,
+			&PeHeaderT<x>::getIddBoundImportRva,
+			&PeHeaderT<x>::getIddIatRva,
+			&PeHeaderT<x>::getIddDelayImportRva,
+			&PeHeaderT<x>::getIddComHeaderRva,
+			&PeHeaderT<x>::getIddReservedRva
+		};
+
+		for (unsigned int i=0;i<16;i++)
+		{
+			if (directories >= i + 1 && (this->*getIddItemRva[i])() && rvaToOffset((this->*getIddItemRva[i])()) < dwMinOffset)
+			{
+				dwMinOffset = rvaToOffset((this->*getIddItemRva[i])());
+			}
+		}
+
+		/*if (directories >= 1 && getIddExportRva() && rvaToOffset(getIddExportRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddExportRva());
 		if (directories >= 2 && getIddImportRva() && rvaToOffset(getIddImportRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddImportRva());
 		if (directories >= 3 && getIddResourceRva() && rvaToOffset(getIddResourceRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddResourceRva());
 		if (directories >= 4 && getIddExceptionRva()  && rvaToOffset(getIddExceptionRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddExceptionRva());
@@ -566,7 +602,7 @@ namespace PeLib
 		if (directories >= 12 && getIddBoundImportRva()  && rvaToOffset(getIddBoundImportRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddBoundImportRva());
 		if (directories >= 13 && getIddIatRva()  && rvaToOffset(getIddIatRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddIatRva());
 		if (directories >= 14 && getIddDelayImportRva()  && rvaToOffset(getIddDelayImportRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddDelayImportRva());
-		if (directories >= 15 && getIddComHeaderRva()  && rvaToOffset(getIddComHeaderRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddComHeaderRva());
+		if (directories >= 15 && getIddComHeaderRva()  && rvaToOffset(getIddComHeaderRva()) < dwMinOffset) dwMinOffset = rvaToOffset(getIddComHeaderRva());*/
 		
 		for (word i=0;i<calcNumberOfSections();i++)
 		{
@@ -698,24 +734,15 @@ namespace PeLib
 	* SectionAlignment (will be aligned to n*0x1000), NumberOfRvaAndSizes, SizeOfHeaders, SizeOfImage,
 	* Magic, Characteristics.
 	* @param dwOffset Beginning of PeHeader (see #PeLib::MzHeader::getAddressOfPeHeader).
-    * \todo 32bit and 64bit versions.
 	**/
 	template<int x>
 	void PeHeaderT<x>::makeValid(dword dwOffset)
 	{
 		setNtSignature(PELIB_IMAGE_NT_SIGNATURE); // 'PE'
-		setMachine(PELIB_IMAGE_FILE_MACHINE_I386);
 		setNumberOfSections(calcNumberOfSections());
-		
-		// Check if 64 bits.
 		setSizeOfOptionalHeader(PELIB_IMAGE_OPTIONAL_HEADER<x>::size() + calcNumberOfRvaAndSizes() * 8);
 
-		// Check if 64 bits.
-		dword dwCharacteristics = PELIB_IMAGE_FILE_EXECUTABLE_IMAGE | PELIB_IMAGE_FILE_32BIT_MACHINE;
-		setCharacteristics(dwCharacteristics);
-
-		// Check if 64 bits.
-		setMagic(PELIB_IMAGE_NT_OPTIONAL_HDR32_MAGIC);
+		makeValidSpecific();
 
 		// setImageBase(0x01000000);
 
@@ -1866,6 +1893,26 @@ namespace PeLib
 	}
 
 	/**
+	* Returns the relative virtual address of the current file's reserved directory.
+	* @return The Rva of the reserved directory.
+	**/
+	template<int x>
+	dword PeHeaderT<x>::getIddReservedRva() const
+	{
+		return m_inthHeader.dataDirectories[PELIB_IMAGE_DIRECTORY_ENTRY_RESERVED].VirtualAddress;
+	}
+	
+	/**
+	* Returns the size of the current file's reserved directory.
+	* @return The Rva of the reserved directory.
+	**/
+	template<int x>
+	dword PeHeaderT<x>::getIddReservedSize() const
+	{
+		return m_inthHeader.dataDirectories[PELIB_IMAGE_DIRECTORY_ENTRY_RESERVED].Size;
+	}
+
+	/**
 	* Returns the relative virtual address of an image directory.
 	* @param dwDirectory The identifier of an image directory.
 	* @return The Rva of the image directory.
@@ -2548,6 +2595,18 @@ namespace PeLib
 	void PeHeaderT<x>::setIddComHeaderSize(dword value)
 	{
 		m_inthHeader.dataDirectories[PELIB_IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].Size = value;
+	}
+
+	template<int x>
+	void PeHeaderT<x>::setIddReservedRva(dword value)
+	{
+		m_inthHeader.dataDirectories[PELIB_IMAGE_DIRECTORY_ENTRY_RESERVED].VirtualAddress = value;
+	}
+
+	template<int x>
+	void PeHeaderT<x>::setIddReservedSize(dword value)
+	{
+		m_inthHeader.dataDirectories[PELIB_IMAGE_DIRECTORY_ENTRY_RESERVED].Size = value;
 	}
 
 	/**
