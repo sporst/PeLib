@@ -2,6 +2,7 @@
 #define DELAYIMPORTDIRECTORY_H
 
 #include "PeLibAux.h"
+#include <cstddef>
 
 namespace PeLib
 {

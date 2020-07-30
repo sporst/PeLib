@@ -23,6 +23,8 @@
 
 namespace PeLib
 {
+	bool isEqualNc(const std::string&, const std::string&);
+
 	enum errorCodes
 	{
 		NO_ERROR = 0,
@@ -779,7 +781,7 @@ namespace PeLib
 		
 		bool operator==(std::string strFilename) const
 		{
-			return isEqualNc(this->name, strFilename);
+			return PeLib::isEqualNc(this->name, strFilename);
 		}
 	};
 
